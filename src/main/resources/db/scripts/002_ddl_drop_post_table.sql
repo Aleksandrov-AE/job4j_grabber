@@ -1,1 +1,1 @@
-drop table if exists post cascade;
+drop table if exists posts cascade;

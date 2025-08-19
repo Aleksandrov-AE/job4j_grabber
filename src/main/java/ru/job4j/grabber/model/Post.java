@@ -7,21 +7,15 @@ public class Post {
     private String title;        // название
     private String link;         // ссылка
     private String description;  // описание
-    private Long time;           // время создания в мс
+    private Long time = System.currentTimeMillis();          // время создания в мс
 
     public Post() {
     }
 
-    public Post(Long id, String title, String link, String description, Long time) {
-        this.id = id;
+    public Post(String title, String link, String description) {
         this.title = title;
         this.link = link;
         this.description = description;
-        this.time = time;
-    }
-
-    public Post(String title, String link, String description, Long time) {
-        this(null, title, link, description, time);
     }
 
     public Long getId() {
