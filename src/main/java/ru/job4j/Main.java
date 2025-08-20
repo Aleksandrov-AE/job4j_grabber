@@ -32,6 +32,7 @@ public class Main {
                     SuperJobGrab.class,
                     store);
             Thread.sleep(100000);
+
         } catch (SQLException e) {
             LOG.error("When create a connection", e);
         } catch (InterruptedException e) {

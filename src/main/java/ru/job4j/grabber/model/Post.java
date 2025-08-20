@@ -1,5 +1,6 @@
 package ru.job4j.grabber.model;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Post {
@@ -7,15 +8,16 @@ public class Post {
     private String title;        // название
     private String link;         // ссылка
     private String description;  // описание
-    private Long time = System.currentTimeMillis();          // время создания в мс
+    private LocalDateTime time;
 
     public Post() {
     }
 
-    public Post(String title, String link, String description) {
+    public Post(String title, String link, String description, LocalDateTime time) {
         this.title = title;
         this.link = link;
         this.description = description;
+        this.time = time;
     }
 
     public Long getId() {
@@ -50,11 +52,11 @@ public class Post {
         this.description = description;
     }
 
-    public Long getTime() {
+    public LocalDateTime getTime() {
         return time;
     }
 
-    public void setTime(Long time) {
+    public void setTime(LocalDateTime time) {
         this.time = time;
     }
 
@@ -63,10 +65,9 @@ public class Post {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof Post)) {
+        if (!(o instanceof Post post)) {
             return false;
         }
-        Post post = (Post) o;
         return Objects.equals(link, post.link); // уникальность по ссылке
     }
 
