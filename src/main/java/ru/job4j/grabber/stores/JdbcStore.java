@@ -23,7 +23,7 @@ public class JdbcStore implements Store {
             preparedStatement.setString(1, post.getTitle());
             preparedStatement.setString(2, post.getLink());
             preparedStatement.setString(3, post.getDescription());
-            preparedStatement.setTimestamp(4, Timestamp.valueOf(post.getTime()));
+            preparedStatement.setTimestamp(4, new Timestamp(post.getTime() * 1000));
             preparedStatement.execute();
             try (ResultSet resultSet = preparedStatement.getGeneratedKeys()) {
                 if (resultSet.next()) {

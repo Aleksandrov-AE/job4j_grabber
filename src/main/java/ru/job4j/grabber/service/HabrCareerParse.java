@@ -4,8 +4,9 @@ import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import ru.job4j.grabber.model.Post;
+import ru.job4j.grabber.utils.DateTimeParser;
 import java.io.IOException;
-import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +16,11 @@ public class HabrCareerParse implements Parse {
     private static final String PREFIX = "/vacancies?page=";
     private static final String SUFFIX = "&q=Java%20developer&type=all";
     private static final int COUNT_PAGE = 1;
+    private final DateTimeParser dateTimeParser;
+
+    public HabrCareerParse(DateTimeParser dateTimeParser) {
+        this.dateTimeParser = dateTimeParser;
+    }
 
     @Override
     public List<Post> fetch() {
@@ -37,12 +43,11 @@ public class HabrCareerParse implements Parse {
                     String link = String.format("%s%s", SOURCE_LINK,
                             linkElement.attr("href"));
                     String isoDate = dataElement.child(0).attr("datetime"); // ISO-строка
-                    OffsetDateTime odt = OffsetDateTime.parse(isoDate);
                     var post = new Post();
                     post.setTitle(vacancyName);
                     post.setLink(link);
                     post.setDescription(retrieveDescription(link));
-                    post.setTime(odt.toLocalDateTime());
+                    post.setTime(dateTimeParser.parse(isoDate).toEpochSecond(ZoneOffset.UTC));
                     result.add(post);
                 });
             }
