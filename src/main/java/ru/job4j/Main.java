@@ -32,7 +32,7 @@ public class Main {
                     store);
             for (var post : posts) {
                 store.save(post);
-                Thread.sleep(1000);
+                Thread.sleep(100);
             }
 
         } catch (SQLException e) {

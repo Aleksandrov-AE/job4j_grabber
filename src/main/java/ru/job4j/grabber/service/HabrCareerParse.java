@@ -2,6 +2,7 @@ package ru.job4j.grabber.service;
 
 import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import ru.job4j.grabber.model.Post;
 import java.io.IOException;
 import java.time.OffsetDateTime;
@@ -13,7 +14,7 @@ public class HabrCareerParse implements Parse {
     private static final String SOURCE_LINK = "https://career.habr.com";
     private static final String PREFIX = "/vacancies?page=";
     private static final String SUFFIX = "&q=Java%20developer&type=all";
-    private static final int COUNT_PAGE = 5;
+    private static final int COUNT_PAGE = 1;
 
     @Override
     public List<Post> fetch() {
@@ -27,6 +28,10 @@ public class HabrCareerParse implements Parse {
                 rows.forEach(row -> {
                     var titleElement = row.select(".vacancy-card__title").first();
                     var dataElement = row.select(".vacancy-card__date").first();
+                    if (titleElement == null || dataElement == null) {
+                        LOG.warn("Skip row: missing title/date elements");
+                        return;
+                    }
                     var linkElement = titleElement.child(0);
                     String vacancyName = titleElement.text();
                     String link = String.format("%s%s", SOURCE_LINK,
@@ -36,6 +41,7 @@ public class HabrCareerParse implements Parse {
                     var post = new Post();
                     post.setTitle(vacancyName);
                     post.setLink(link);
+                    post.setDescription(retrieveDescription(link));
                     post.setTime(odt.toLocalDateTime());
                     result.add(post);
                 });
@@ -44,5 +50,21 @@ public class HabrCareerParse implements Parse {
             LOG.error("When load page", e);
         }
         return result;
+    }
+
+    private String retrieveDescription(String link) {
+        try {
+            var connection = Jsoup.connect(link);
+            Document document = connection.get();
+            var el = document.selectFirst(".vacancy-description__text .style-ugc");
+            if (el == null) {
+                throw new IllegalStateException("Description block not found for link: " + link);
+            }
+            el.select("h3").remove();
+            return el.wholeText().trim();
+        } catch (IOException | IllegalStateException e) {
+            LOG.error("When load description", e);
+            throw new RuntimeException(e);
+        }
     }
 }
