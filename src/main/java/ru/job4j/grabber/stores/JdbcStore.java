@@ -9,9 +9,16 @@ import java.util.Optional;
 
 public class JdbcStore implements Store {
     private final Connection connection;
-    private static final String INSERT_QUERY = "INSERT INTO posts (title, link, description, created) VALUES (?, ?, ?, ?);";
-    private static final String SELECT_QUERY = "SELECT * FROM posts";
-    private static final String SELECT_BY_ID_QUERY = "SELECT FROM posts WHERE id = ?";
+    private static final String INSERT_QUERY = """
+            INSERT INTO posts (title, link, description, created)
+                            VALUES (?, ?, ?, ?)
+                            ON CONFLICT (link) DO UPDATE
+                            SET title = EXCLUDED.title,
+                                description = EXCLUDED.description,
+                                created = EXCLUDED.created
+                            RETURNING id;""";
+    private static final String SELECT_QUERY = "SELECT id, title, link, description, created  FROM posts";
+    private static final String SELECT_BY_ID_QUERY = "SELECT id, title, link, description, created FROM posts WHERE id = ?";
 
     public JdbcStore(Connection connection) {
         this.connection = connection;
@@ -24,7 +31,7 @@ public class JdbcStore implements Store {
             preparedStatement.setString(2, post.getLink());
             preparedStatement.setString(3, post.getDescription());
             preparedStatement.setTimestamp(4, new Timestamp(post.getTime() * 1000));
-            preparedStatement.execute();
+            preparedStatement.executeUpdate();
             try (ResultSet resultSet = preparedStatement.getGeneratedKeys()) {
                 if (resultSet.next()) {
                     post.setId((long) resultSet.getInt(1));
@@ -41,12 +48,7 @@ public class JdbcStore implements Store {
         try (PreparedStatement preparedStatement = connection.prepareStatement(SELECT_QUERY)) {
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    Post post = new Post();
-                    post.setId(resultSet.getLong(1));
-                    post.setTitle(resultSet.getString(2));
-                    post.setLink(resultSet.getString(3));
-                    post.setDescription(resultSet.getString(4));
-                    posts.add(post);
+                    posts.add(map(resultSet));
                 }
             }
         } catch (SQLException e) {
@@ -62,12 +64,23 @@ public class JdbcStore implements Store {
             preparedStatement.setLong(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
-                    post = Optional.of(new Post());
+                    post = Optional.of(map(resultSet));
                 }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        return post;
+    }
+
+    private Post map(ResultSet resultSet) throws SQLException {
+        Post post = new Post();
+        post.setId(resultSet.getLong(1));
+        post.setTitle(resultSet.getString(2));
+        post.setLink(resultSet.getString(3));
+        post.setDescription(resultSet.getString(4));
+        Timestamp time = resultSet.getTimestamp(5);
+        post.setTime(time.getTime() / 1000);
         return post;
     }
 }
