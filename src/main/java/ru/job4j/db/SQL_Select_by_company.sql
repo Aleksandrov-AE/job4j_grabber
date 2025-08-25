@@ -28,5 +28,5 @@ HAVING COUNT(p.id) = (
         SELECT company_id, COUNT(*) AS cnt
         FROM person
         GROUP BY company_id
-    ) t
+    )
 );

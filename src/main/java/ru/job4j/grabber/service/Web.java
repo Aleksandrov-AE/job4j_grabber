@@ -21,8 +21,30 @@ public class Web {
         // Формируем страницу с вакансиями
         app.get("/", ctx -> {
             ctx.contentType("text/html; charset=utf-8");
+
             var page = new StringBuilder();
-            store.getAll().forEach(post -> page.append(post.toString()).append("<br>"));
+            page.append("<!DOCTYPE html>");
+            page.append("<html>");
+            page.append("<head>");
+            page.append("<meta charset='UTF-8'>");
+            page.append("<title>Все посты</title>");
+            page.append("<style>");
+            page.append(".post { padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }");
+            page.append("</style>");
+            page.append("</head>");
+            page.append("<body>");
+            page.append("<h1>Список постов</h1>");
+
+            // Формируем блоки для каждого поста
+            store.getAll().forEach(post ->
+                    page.append("<div class='post'>")
+                            .append(post.toString())
+                            .append("</div>")
+            );
+
+            page.append("</body>");
+            page.append("</html>");
+
             ctx.result(page.toString());
         });
     }

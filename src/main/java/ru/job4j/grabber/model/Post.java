@@ -80,6 +80,7 @@ public class Post {
                 + "id=" + id
                 + ", title='" + title + '\''
                 + ", link='" + link + '\''
-                + ", time=" + time + '}';
+                + ", time=" + time + '\''
+                + ", description='" + description + '}';
     }
 }
